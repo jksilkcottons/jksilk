@@ -89,13 +89,13 @@ onValue(productsRef, (snapshot) => {
                     <button class="addToCartModal bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" data-name="${productName}" data-price="${productPrice}">Add to Cart</button>
                 </div>
                 <div class="mt-4">
-                    <img src="${productImages.image1}" alt="${productName}" class="w-full h-40 object-cover rounded-lg mb-4">
+                    <img src="${productImages.image1}" alt="${productName}" class="w-full h-40 object-cover rounded-lg mb-4 product-image">
             `;
 
             // Add sub-images
             modalContent += '<div class="grid grid-cols-2 gap-4">';
             for (const imageKey in productImages) {
-                modalContent += `<img src="${productImages[imageKey]}" alt="Sub image" class="w-full h-24 object-cover rounded-lg">`;
+                modalContent += `<img src="${productImages[imageKey]}" alt="Sub image" class="w-full h-24 object-cover rounded-lg product-image">`;
             }
             modalContent += '</div>';
             modalContent += `</div>`;
@@ -105,6 +105,14 @@ onValue(productsRef, (snapshot) => {
 
             // Show modal
             document.getElementById('productModal').classList.remove('hidden');
+
+            // Add event listeners for image click to expand
+            const productImagesElements = document.querySelectorAll('.product-image');
+            productImagesElements.forEach(image => {
+                image.addEventListener('click', () => {
+                    openFullScreenImage(image.src);
+                });
+            });
         });
     });
 
@@ -143,3 +151,26 @@ document.addEventListener('DOMContentLoaded', () => {
         menu.classList.toggle('hidden');
     });
 });
+
+// Full-screen image view
+function openFullScreenImage(imageSrc) {
+    // Create the full-screen image container
+    const fullScreenImageContainer = document.createElement('div');
+    fullScreenImageContainer.classList.add('fixed', 'inset-0', 'bg-gray-900', 'bg-opacity-90', 'flex', 'items-center', 'justify-center', 'z-50');
+    
+    // Create the full-screen image element
+    const fullScreenImage = document.createElement('img');
+    fullScreenImage.src = imageSrc;
+    fullScreenImage.classList.add('w-auto', 'h-auto', 'max-w-full', 'max-h-full', 'rounded-lg', 'shadow-lg');
+
+    // Append image to the container
+    fullScreenImageContainer.appendChild(fullScreenImage);
+    
+    // Append the container to the body
+    document.body.appendChild(fullScreenImageContainer);
+
+    // Add event listener to close the image on click
+    fullScreenImageContainer.addEventListener('click', () => {
+        fullScreenImageContainer.remove();
+    });
+}
