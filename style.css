@@ -1,9 +1,0 @@
-#mobile-menu a {
-    padding: 12px 16px; /* Increase padding for better touch targets */
-    border-radius: 8px; /* Rounded corners */
-    transition: background-color 0.3s ease; /* Smooth transition for background color */
-}
-
-#mobile-menu a:hover {
-    background-color: #f3f4f6; /* Light gray on hover */
-}
