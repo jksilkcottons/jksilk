@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Items</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex mt-32 items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96 mt-32"> <!-- Changed mt-16 to mt-32 for more top margin -->
+        <h1 class="text-2xl font-bold mb-6 text-center">Add New Item</h1>
+        <form id="addItemForm">
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Category</label>
+                <select id="category" class="w-full p-2 border rounded-lg">
+                    <option value="beds">Beds</option>
+                    <option value="pillows">Pillows</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Item Name</label>
+                <input type="text" id="itemName" class="w-full p-2 border rounded-lg" placeholder="Enter item name">
+            </div>
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Price</label>
+                <input type="number" id="price" class="w-full p-2 border rounded-lg" placeholder="Enter item price">
+            </div>
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Size</label>
+                <input type="text" id="details" class="w-full p-2 border rounded-lg" placeholder="Enter item details">
+            </div>
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Description</label>
+                <textarea id="description" class="w-full p-2 border rounded-lg" placeholder="Enter item description"></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-gray-700">Main Image</label>
+                <input type="file" id="mainImageUpload" accept="image/*" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-gray-700">Substitute Images</label>
+                <input type="file" id="image1Upload" accept="image/*" class="w-full p-2 border rounded-lg mb-2">
+                <input type="file" id="image2Upload" accept="image/*" class="w-full p-2 border rounded-lg mb-2">
+                <input type="file" id="image3Upload" accept="image/*" class="w-full p-2 border rounded-lg mb-2">
+                <input type="file" id="image4Upload" accept="image/*" class="w-full p-2 border rounded-lg">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 w-full rounded-lg hover:bg-blue-600">Add Item</button>
+        </form>
+    </div>
+
+    <!-- Firebase Configuration & Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBahjLL2GpnirzKS9ukkZ4FUodLSJuuOB8",
+            authDomain: "softmatters-6be76.firebaseapp.com",
+            databaseURL: "https://softmatters-6be76-default-rtdb.firebaseio.com",
+            projectId: "softmatters-6be76",
+            storageBucket: "softmatters-6be76.appspot.com",
+            messagingSenderId: "634958200094",
+            appId: "1:634958200094:web:d8b40eb879a76c50a75d0f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const storage = getStorage(app);
+
+        const addItemForm = document.getElementById('addItemForm');
+
+        addItemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const category = document.getElementById('category').value;
+            const itemName = document.getElementById('itemName').value;
+            const price = document.getElementById('price').value;
+            const details = document.getElementById('details').value;
+            const description = document.getElementById('description').value;
+
+            const mainImage = document.getElementById('mainImageUpload').files[0];
+            const image1 = document.getElementById('image1Upload').files[0];
+            const image2 = document.getElementById('image2Upload').files[0];
+            const image3 = document.getElementById('image3Upload').files[0];
+            const image4 = document.getElementById('image4Upload').files[0];
+
+            if (!mainImage) {
+                alert("Please upload a main image.");
+                return;
+            }
+
+            const uploadImage = async (imageFile, filePath) => {
+                const imageRef = storageRef(storage, filePath);
+                const snapshot = await uploadBytes(imageRef, imageFile);
+                return getDownloadURL(snapshot.ref);
+            };
+
+            try {
+                const mainImageURL = await uploadImage(mainImage, `images/${mainImage.name}`);
+                const image1URL = image1 ? await uploadImage(image1, `images/${image1.name}`) : null;
+                const image2URL = image2 ? await uploadImage(image2, `images/${image2.name}`) : null;
+                const image3URL = image3 ? await uploadImage(image3, `images/${image3.name}`) : null;
+                const image4URL = image4 ? await uploadImage(image4, `images/${image4.name}`) : null;
+
+                const newItem = {
+                    Name: itemName,
+                    Price: price,
+                    Details: details,
+                    Description: description,
+                    MainImage: mainImageURL,
+                    Images: {
+                        image1: image1URL,
+                        image2: image2URL,
+                        image3: image3URL,
+                        image4: image4URL
+                    }
+                };
+
+                const itemsRef = ref(database, `Entry/${category}`);
+                await push(itemsRef, newItem);
+
+                alert("Item added successfully!");
+                addItemForm.reset();
+            } catch (error) {
+                console.error("Error adding item:", error);
+                alert("Error adding item. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>

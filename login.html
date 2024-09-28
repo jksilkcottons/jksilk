@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        <div id="error-message" class="text-red-500 mb-4 hidden">Invalid username or password</div>
+        <form id="loginForm">
+            <div class="mb-4">
+                <label class="block mb-2 text-gray-700">Username</label>
+                <input type="text" id="username" class="w-full p-2 border rounded-lg" placeholder="Enter username">
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-gray-700">Password</label>
+                <input type="password" id="password" class="w-full p-2 border rounded-lg" placeholder="Enter password">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 w-full rounded-lg hover:bg-blue-600">Login</button>
+        </form>
+    </div>
+
+    <!-- Firebase Configuration & Script -->
+    <script type="module">
+        // Import Firebase SDK functions from modular Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBahjLL2GpnirzKS9ukkZ4FUodLSJuuOB8",
+            authDomain: "softmatters-6be76.firebaseapp.com",
+            databaseURL: "https://softmatters-6be76-default-rtdb.firebaseio.com",
+            projectId: "softmatters-6be76",
+            storageBucket: "softmatters-6be76.appspot.com",
+            messagingSenderId: "634958200094",
+            appId: "1:634958200094:web:d8b40eb879a76c50a75d0f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Listen for admin login data
+        const adminRef = ref(database, 'admin');
+        let adminData = {};
+        onValue(adminRef, (snapshot) => {
+            adminData = snapshot.val();
+        });
+
+        // Handle Login Form Submission
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('error-message');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Validate admin credentials
+            if (username === adminData.username && password === adminData.password.toString()) {
+                // Redirect to add-items.html
+                window.location.href = 'add-items.html';
+            } else {
+                // Show error message
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
