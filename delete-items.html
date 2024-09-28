@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Items</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="loader border-t-4 border-blue-500 border-solid rounded-full w-12 h-12 animate-spin"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md md:hidden">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-blue-600">Delete-Items</div>
+            <button id="sidebarToggle" class="text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed inset-0 bg-gray-200 w-64 transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-lg z-10 flex flex-col">
+        <div class="px-4 py-4">
+            <h2 class="text-xl font-bold text-blue-600">Menu</h2>
+        </div>
+        <div class="flex-grow flex flex-col justify-between">
+            <div class="px-4">
+                <a href="add-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-plus mr-2"></i> Add Items
+                </a>
+                <a href="delete-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-trash mr-2"></i> Delete Items
+                </a>
+                <a href="edit-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-edit mr-2"></i> Edit Items
+                </a>
+            </div>
+            <div class="px-4">
+                <a href="index.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-home mr-2"></i> Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow container mx-auto p-8">
+        <!-- Search Box -->
+        <div class="mb-4">
+            <label for="searchBox" class="block text-gray-700 font-bold mb-2">Search Items:</label>
+            <input type="text" id="searchBox" class="border border-gray-300 rounded-lg p-2 w-full" placeholder="Search by item name" oninput="filterItems()">
+        </div>
+
+        <div id="itemsContainer" class="grid grid-cols-1 gap-8">
+            <!-- Dynamic Cards will be added here -->
+        </div>
+    </div>
+
+    <!-- Firebase and JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+    
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBahjLL2GpnirzKS9ukkZ4FUodLSJuuOB8",
+            authDomain: "softmatters-6be76.firebaseapp.com",
+            databaseURL: "https://softmatters-6be76-default-rtdb.firebaseio.com", // Ensure this is correct
+            projectId: "softmatters-6be76",
+            storageBucket: "softmatters-6be76.appspot.com",
+            messagingSenderId: "634958200094",
+            appId: "1:634958200094:web:d8b40eb879a76c50a75d0f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let itemsData = {}; // To store fetched data
+    
+        // Fetch items from the database
+        const fetchItems = () => {
+            const itemsRef = ref(db, 'Entry'); // Reference to the "Entry" node
+            
+            // Show loading spinner
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+
+            onValue(itemsRef, (snapshot) => {
+                itemsData = snapshot.val();
+                filterItems(); // Apply filters after fetching data
+
+                // Hide loading spinner after fetching
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            });
+        };
+
+        // Render items in the UI
+        const renderItems = (data) => {
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = ''; // Clear the container before adding new items
+
+            Object.keys(data).forEach(category => {
+                // Add category title only if there are items after filtering
+                const itemsInCategory = data[category];
+                if (Object.keys(itemsInCategory).length > 0) {
+                    const categoryTitle = `<h2 class="text-2xl font-bold text-gray-800 mb-4 col-span-full">${category}</h2>`;
+                    itemsContainer.innerHTML += categoryTitle;
+
+                    Object.keys(itemsInCategory).forEach(itemId => {
+                        const item = itemsInCategory[itemId];
+
+                        // Create a card for each item
+                        const card = `
+                            <div class="bg-white rounded-lg shadow-lg p-6 mb-4">
+                                <img src="${item.MainImage}" alt="${item.Name}" class="w-full h-48 object-cover rounded-md mb-4">
+                                <h3 class="text-xl font-bold mb-2">${item.Name}</h3>
+                                <p class="text-gray-700 mb-2">Price: ₹${item.Price}</p>
+                                <p class="text-gray-700 mb-2">Description: ${item.Description}</p>
+                                <button class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out" 
+                                        onclick="deleteItem('${category}', '${itemId}')">Delete</button>
+                            </div>
+                        `;
+                        // Append the card to the container
+                        itemsContainer.innerHTML += card;
+                    });
+                }
+            });
+        };
+
+        // Filter items by search term
+        const filterItems = () => {
+            const searchValue = document.getElementById('searchBox').value.toLowerCase();
+            const filteredData = {};
+
+            Object.keys(itemsData).forEach(category => {
+                Object.keys(itemsData[category]).forEach(itemId => {
+                    const item = itemsData[category][itemId];
+                    const itemNameLower = item.Name.toLowerCase();
+
+                    // Filter by item name
+                    if (itemNameLower.includes(searchValue)) {
+                        if (!filteredData[category]) {
+                            filteredData[category] = {};
+                        }
+                        filteredData[category][itemId] = item;
+                    }
+                });
+            });
+
+            renderItems(filteredData);
+        };
+
+        // Delete item function
+        window.deleteItem = (category, itemId) => { // Expose deleteItem globally
+            const itemRef = ref(db, `Entry/${category}/${itemId}`);
+            remove(itemRef)
+                .then(() => {
+                    alert('Item deleted successfully!');
+                    fetchItems(); // Refresh the items after deletion
+                })
+                .catch((error) => {
+                    console.error('Error deleting item:', error);
+                });
+        };
+
+        // Fetch items on page load
+        window.onload = fetchItems;
+
+        // Close sidebar when clicking outside of it
+        document.addEventListener('click', (event) => {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const isClickInside = sidebar.contains(event.target) || sidebarToggle.contains(event.target);
+
+            if (!isClickInside) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    </script>
+
+    <script>
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+    </script>
+
+</body>
+</html>

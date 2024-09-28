@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="bg-white shadow-lg transition-all duration-500 ease-in-out">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a href="index.html" class="flex items-center space-x-2">
+                    <div class="text-2xl font-bold">JK Mattress</div>
+                </a>
+                <button id="menu-toggle" class="text-gray-700 focus:outline-none lg:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+
+                <div class="hidden lg:flex space-x-4">
+                    <a href="index.html" class="text-gray-700 hover:text-blue-500">Home</a>
+                    <a href="about.html" class="text-gray-700 hover:text-blue-500">About</a>
+                    <a href="contact.html" class="text-gray-700 hover:text-blue-500">Contact</a>
+                    <a href="login.html" class="text-gray-700 hover:text-blue-500">Admin-Login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Sidebar (hidden by default) -->
+        <div id="mobile-menu" class="hidden bg-gray-800 text-white shadow-lg fixed inset-y-0 left-0 w-64 transform -translate-x-full transition-transform duration-500 ease-in-out lg:hidden flex flex-col">
+            <div class="p-6 flex-grow">
+                <h2 class="text-lg font-bold mb-4 text-center border-b border-white pb-2">Menu</h2>
+                <div class="flex flex-col space-y-4">
+                    <a href="index.html" class="flex items-center text-white hover:text-blue-400 space-x-2">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="about.html" class="flex items-center text-white hover:text-blue-400 space-x-2">
+                        <i class="fas fa-info-circle"></i>
+                        <span>About</span>
+                    </a>
+                    <a href="contact.html" class="flex items-center text-white hover:text-blue-400 space-x-2">
+                        <i class="fas fa-envelope"></i>
+                        <span>Contact</span>
+                    </a>
+                </div>
+            </div>
+            <div class="p-6">
+                <a href="login.html" class="flex items-center text-white hover:text-blue-400 space-x-2 mt-auto">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin-Login</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const menuToggle = document.getElementById('menu-toggle');
+        const menu = document.getElementById('mobile-menu');
+
+        menuToggle.addEventListener('click', () => {
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden'); // Show the menu
+                setTimeout(() => {
+                    menu.classList.add('show'); // Apply slide-in class after it's shown
+                }, 10); // Short delay for transition to take effect
+            } else {
+                menu.classList.remove('show'); // Apply slide-out class
+                setTimeout(() => {
+                    menu.classList.add('hidden'); // Hide the menu after animation
+                }, 500); // Match the duration with CSS
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!menu.contains(event.target) && !menuToggle.contains(event.target)) {
+                menu.classList.remove('show'); // Slide out
+                setTimeout(() => {
+                    menu.classList.add('hidden'); // Hide it after animation
+                }, 500); // Match the duration with CSS
+            }
+        });
+    });
+
+
+    </script>
+</body>
+</html>

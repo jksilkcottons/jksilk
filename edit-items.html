@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Items</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* Sidebar style */
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+
+        /* Loader style */
+        .loader {
+            border-top-color: #3b82f6; /* Change this to match your theme */
+            animation: spin 1s linear infinite;
+        }
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="loader border-t-4 border-blue-500 border-solid rounded-full w-12 h-12"></div>
+    </div>
+
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md md:hidden">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-blue-600">Edit-Items</div>
+            <button id="sidebarToggle" class="text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed inset-0 bg-gray-200 w-64 transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-lg z-10 flex flex-col">
+        <div class="px-4 py-4">
+            <h2 class="text-xl font-bold text-blue-600">Menu</h2>
+        </div>
+        <div class="flex-grow flex flex-col justify-between">
+            <div class="px-4">
+                <a href="add-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-plus mr-2"></i> Add Items
+                </a>
+                <a href="delete-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-trash mr-2"></i> Delete Items
+                </a>
+                <a href="edit-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-edit mr-2"></i> Edit Items
+                </a>
+            </div>
+            <div class="px-4">
+                <a href="index.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-home mr-2"></i> Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
+        <!-- Search Bar -->
+        <input id="searchBox" type="text" placeholder="Search items..." class="w-full md:w-1/2 p-2 border rounded-lg mb-4 md:mb-0 md:mr-4">
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow container mx-auto p-8">
+        <div id="itemsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dynamic Cards will be added here -->
+        </div>
+    </div>
+
+    <!-- Firebase and JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBahjLL2GpnirzKS9ukkZ4FUodLSJuuOB8",
+            authDomain: "softmatters-6be76.firebaseapp.com",
+            databaseURL: "https://softmatters-6be76-default-rtdb.firebaseio.com",
+            projectId: "softmatters-6be76",
+            storageBucket: "softmatters-6be76.appspot.com",
+            messagingSenderId: "634958200094",
+            appId: "1:634958200094:web:d8b40eb879a76c50a75d0f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let itemsData = {}; // To store fetched data
+
+        // Fetch items from the database
+        const fetchItems = () => {
+            const itemsRef = ref(db, 'Entry'); // Reference to the "Entry" node
+
+            // Show loading spinner
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+
+            onValue(itemsRef, (snapshot) => {
+                itemsData = snapshot.val();
+                filterItems(); // Apply current filters after fetching data
+
+                // Hide loading spinner
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            });
+        };
+
+        // Render items in the UI
+        const renderItems = (data) => {
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = ''; // Clear the container before adding new items
+
+            Object.keys(data).forEach(category => {
+                // Add category title only if there's at least one item after filtering
+                const itemsInCategory = data[category];
+                if (Object.keys(itemsInCategory).length > 0) {
+                    const categoryTitle = `<h2 class="text-2xl font-bold text-gray-800 mb-4 col-span-full">${category}</h2>`;
+                    itemsContainer.innerHTML += categoryTitle;
+
+                    Object.keys(itemsInCategory).forEach(itemId => {
+                        const item = itemsInCategory[itemId];
+
+                        // Create a card for each item with editable fields
+                        const card = `
+                            <div class="bg-white rounded-lg shadow-lg p-6 item-card" data-name="${item.Name.toLowerCase()}" data-category="${category}">
+                                <img src="${item.MainImage}" alt="${item.Name}" class="w-full h-48 object-cover rounded-md mb-4">
+                                
+                                <label class="block mb-2 text-gray-700">Item Name</label>
+                                <input type="text" id="itemName-${category}-${itemId}" value="${item.Name}" class="w-full p-2 border rounded-lg mb-4">
+
+                                <label class="block mb-2 text-gray-700">Price (INR)</label>
+                                <input type="number" id="itemPrice-${category}-${itemId}" value="${item.Price}" class="w-full p-2 border rounded-lg mb-4">
+
+                                <label class="block mb-2 text-gray-700">Size</label>
+                                <input type="text" id="itemSize-${category}-${itemId}" value="${item.Size || ''}" class="w-full p-2 border rounded-lg mb-4">
+
+                                <label class="block mb-2 text-gray-700">Description</label>
+                                <textarea id="itemDescription-${category}-${itemId}" class="w-full p-2 border rounded-lg mb-4">${item.Description || ''}</textarea>
+
+                                <button class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out" 
+                                        onclick="editItem('${category}', '${itemId}')">Save Changes</button>
+                            </div>
+                        `;
+
+                        // Append the card to the container
+                        itemsContainer.innerHTML += card;
+                    });
+                }
+            });
+        };
+
+        // Edit item function
+        window.editItem = (category, itemId) => {
+            // Show loading spinner when editing
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+
+            const itemName = document.getElementById(`itemName-${category}-${itemId}`).value;
+            const itemPrice = document.getElementById(`itemPrice-${category}-${itemId}`).value;
+            const itemSize = document.getElementById(`itemSize-${category}-${itemId}`).value;
+            const itemDescription = document.getElementById(`itemDescription-${category}-${itemId}`).value;
+
+            const itemRef = ref(db, `Entry/${category}/${itemId}`);
+            update(itemRef, {
+                Name: itemName,
+                Price: itemPrice,
+                Size: itemSize,
+                Description: itemDescription
+            })
+            .then(() => {
+                alert('Item updated successfully!');
+                // Hide loading spinner after successful update
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            })
+            .catch((error) => {
+                console.error('Error updating item:', error);
+                // Hide loading spinner if there's an error
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            });
+        };
+
+        // Search filter functionality
+        const filterItems = () => {
+            const searchValue = document.getElementById('searchBox').value.toLowerCase();
+            const filteredData = {};
+
+            Object.keys(itemsData).forEach(category => {
+                const itemsInCategory = itemsData[category];
+                const filteredItems = Object.keys(itemsInCategory).filter(itemId => {
+                    const item = itemsInCategory[itemId];
+                    return item.Name.toLowerCase().includes(searchValue) || category.toLowerCase().includes(searchValue);
+                }).reduce((result, itemId) => {
+                    result[itemId] = itemsInCategory[itemId];
+                    return result;
+                }, {});
+
+                if (Object.keys(filteredItems).length > 0) {
+                    filteredData[category] = filteredItems;
+                }
+            });
+
+            renderItems(filteredData);
+        };
+
+        // Listen to search box input
+        document.getElementById('searchBox').addEventListener('input', filterItems);
+
+        // Fetch items on page load
+        fetchItems();
+    </script>
+    <script>
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        document.addEventListener('click', (event) => {
+            // Close the sidebar if the click is outside the sidebar and toggle button
+            if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    </script>
+</body>
+</html>

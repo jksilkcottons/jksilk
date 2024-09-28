@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="navbar.js"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-500 to-teal-500 flex flex-col min-h-screen">
+    <div id="navbar" class="bg-white shadow-md"></div>
+
+    <div class="flex items-center justify-center flex-grow">
+        <div class="bg-white shadow-lg rounded-lg w-full max-w-sm p-8 mx-4">
+            <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Admin Login</h1>
+            <div id="error-message" class="text-red-500 mb-4 hidden text-center">Invalid username or password</div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block mb-2 text-gray-700">Username</label>
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                        <span class="flex items-center justify-center bg-gray-200 p-2">
+                            <i class="fas fa-user text-gray-500"></i>
+                        </span>
+                        <input type="text" id="username" class="w-full p-2 border-0 focus:outline-none" placeholder="Enter username" required>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block mb-2 text-gray-700">Password</label>
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                        <span class="flex items-center justify-center bg-gray-200 p-2">
+                            <i class="fas fa-lock text-gray-500"></i>
+                        </span>
+                        <input type="password" id="password" class="w-full p-2 border-0 focus:outline-none" placeholder="Enter password" required>
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 w-full rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out">Login</button>
+                <p class="mt-4 text-center text-gray-600">
+                    <a href="#" class="text-blue-500 hover:underline">Forgot Password?</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration & Script -->
+    <script type="module">
+        // Import Firebase SDK functions from modular Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBahjLL2GpnirzKS9ukkZ4FUodLSJuuOB8",
+            authDomain: "softmatters-6be76.firebaseapp.com",
+            databaseURL: "https://softmatters-6be76-default-rtdb.firebaseio.com",
+            projectId: "softmatters-6be76",
+            storageBucket: "softmatters-6be76.appspot.com",
+            messagingSenderId: "634958200094",
+            appId: "1:634958200094:web:d8b40eb879a76c50a75d0f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Listen for admin login data
+        const adminRef = ref(database, 'admin');
+        let adminData = {};
+        onValue(adminRef, (snapshot) => {
+            adminData = snapshot.val();
+        });
+
+        // Handle Login Form Submission
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('error-message');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Validate admin credentials
+            if (username === adminData.username && password === adminData.password.toString()) {
+                // Redirect to add-items.html
+                window.location.href = 'add-items.html';
+            } else {
+                // Show error message
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

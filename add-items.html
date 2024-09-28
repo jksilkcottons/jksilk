@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Items</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Gradient background */
+        body {
+            background: linear-gradient(to right, #4F46E5, #A855F7); /* Tailwind colors: indigo-600 to purple-400 */
+        }
+        /* Sidebar style */
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        /* Image preview styles */
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .image-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid #3B82F6; /* Tailwind blue-500 */
+        }
+        /* Input container style */
+        .input-icon {
+            display: flex;
+            align-items: center; /* Vertically centers the icon and input field */
+            position: relative;
+        }
+
+        /* Icon styles */
+        .input-icon .icon {
+            flex-shrink: 0; /* Prevent the icon from shrinking */
+            margin-right: 0.5rem; /* Space between the icon and the input */
+            color: #A1A1A1; /* Tailwind gray-400 */
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Input fields */
+        .input-icon input,
+        .input-icon select,
+        .input-icon textarea {
+            flex-grow: 1; /* Make the input take up the remaining space */
+            padding-left: 0.5rem; /* Adjust padding to ensure text is not too close to icon */
+            height: 2.5rem; /* Set a consistent height */
+        }
+
+        /* Label styles */
+        .label-top {
+            display: block;
+            margin-bottom: 0.5rem; /* Space between label and input */
+            color: #4B5563; /* Tailwind gray-700 */
+        }
+
+        .hidden {
+            display: none;
+        }
+        /* Loading Spinner Styles */
+        .loader {
+            border-width: 0.3rem; /* Change the thickness of the spinner */
+            border-radius: 50%;
+            border-top-color: transparent; /* Top part of the circle is transparent */
+        }
+        #loadingPercentage {
+            font-size: 1.25rem; /* Increase font size */
+        }
+
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+        <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="loader border-t-4 border-blue-500 border-solid rounded-full w-12 h-12 animate-spin"></div>
+        <div id="loadingPercentage" class="text-white text-lg mt-2">0%</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md md:hidden">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-blue-600">Edit-Items</div>
+            <button id="sidebarToggle" class="text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed inset-0 bg-gray-200 w-64 transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-lg z-10 flex flex-col">
+        <div class="px-4 py-4">
+            <h2 class="text-xl font-bold text-blue-600">Menu</h2>
+        </div>
+        <div class="flex-grow flex flex-col justify-between">
+            <div class="px-4">
+                <a href="add-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-plus mr-2"></i> Add Items
+                </a>
+                <a href="delete-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-trash mr-2"></i> Delete Items
+                </a>
+                <a href="edit-items.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-edit mr-2"></i> Edit Items
+                </a>
+            </div>
+            <div class="px-4">
+                <a href="index.html" class="flex items-center py-2 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-home mr-2"></i> Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Main Content -->
+    <div class="flex-grow flex items-center justify-center mt-8 md:ml-64">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96 transition-transform transform hover:scale-105">
+            <h1 class="text-2xl font-bold mb-6 text-center">Add New Item</h1>
+            <form id="addItemForm">
+                <!-- Page 1 -->
+                <div id="page1" class="page">
+                    <!-- Category Field -->
+                    <div class="mb-4">
+                        <label for="category" class="label-top">Category</label>
+                        <div class="input-icon">
+                            <i class="fas fa-search icon"></i> <!-- Font Awesome Search Icon -->
+                            <select id="category" class="w-full p-2 border rounded-lg" required>
+                                <option value="beds">Beds</option>
+                                <option value="pillows">Pillows</option>
+                            </select>
+                        </div>
+                    </div>
+                                        
+                    <!-- Item Name Field -->
+                    <div class="mb-4">
+                        <label for="itemName" class="label-top">Item Name</label>
+                        <div class="input-icon">
+                            <i class="fas fa-bed icon"></i> <!-- Font Awesome Bed Icon -->
+                            <input type="text" id="itemName" class="w-full p-2 border rounded-lg" placeholder="Enter item name" required>
+                        </div>
+                    </div>
+                    <!-- Price Field -->
+                    <div class="mb-4">
+                        <label for="price" class="label-top">Price (INR)</label>
+                        <div class="input-icon">
+                            <i class="fas fa-rupee-sign icon"></i> <!-- Font Awesome Rupee Icon -->
+                            <input type="number" id="price" class="w-full p-2 border rounded-lg" placeholder="Enter item price" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="size" class="label-top">Size</label>
+                        <div class="input-icon">
+                            <i class="fas fa-ruler icon"></i> <!-- Font Awesome Ruler Icon -->
+                            <input type="text" id="size" class="w-full p-2 border rounded-lg" placeholder="Enter item size (e.g., 5x6)" required>
+                        </div>
+                    </div>
+                    <button type="button" id="nextPageBtn" class="bg-blue-500 text-white py-2 px-4 w-full rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out">Next</button>
+                </div>
+
+                <!-- Page 2 -->
+                <div id="page2" class="page hidden">
+                    <div class="mb-4">
+                        <label for="description" class="label-top">Description</label>
+                        <div class="input-icon">
+                            <i class="fas fa-align-left icon"></i> <!-- Font Awesome Align Left Icon -->
+                            <textarea id="description" class="w-full p-2 border rounded-lg" placeholder="Enter item description" required></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="mainImageUpload" class="label-top">Main Image</label>
+                        <div class="input-icon">
+                            <i class="fas fa-image icon"></i> <!-- Font Awesome Image Icon -->
+                            <input type="file" id="mainImageUpload" accept="image/*" class="w-full p-2 border rounded-lg" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="additionalImagesUpload" class="label-top">Additional Images (Max 10)</label>
+                        <div class="input-icon">
+                            <i class="fas fa-images icon"></i> <!-- Font Awesome Images Icon -->
+                            <input type="file" id="additionalImagesUpload" accept="image/*" class="w-full p-2 border rounded-lg" multiple>
+                        </div>
+                    </div>
+                    <div class="image-preview" id="imagePreview"></div>
+                    <!-- Back and Submit Button Section -->
+                    <div class="flex justify-between">
+                        <!-- Back Button -->
+                        <button type="button" id="backPageBtn" class="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out w-1/2 mr-2">
+                            Back
+                        </button>
+                        <!-- Submit Button -->
+                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out w-1/2">
+                            Add Item
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration & Script -->
+    <script src="add-items.js" type="module"></script>
+    <script>
+        // Preview images
+        const mainImageInput = document.getElementById('mainImageUpload');
+        const additionalImagesInput = document.getElementById('additionalImagesUpload');
+        const imagePreview = document.getElementById('imagePreview');
+
+        // Function to create image thumbnail
+        const createThumbnail = (file) => {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            return img;
+        };
+
+        // Show main image preview
+        mainImageInput.addEventListener('change', () => {
+            const file = mainImageInput.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const mainImagePreview = document.createElement('img');
+                mainImagePreview.src = URL.createObjectURL(file);
+                mainImagePreview.classList.add('mb-4');
+                mainImagePreview.style.width = '80px'; // Set thumbnail size
+                mainImagePreview.style.height = '80px'; // Set thumbnail size
+                imagePreview.innerHTML = ''; // Clear previous previews
+                imagePreview.appendChild(mainImagePreview);
+            }
+        });
+
+        // Show additional images preview
+        additionalImagesInput.addEventListener('change', () => {
+            const files = additionalImagesInput.files;
+            imagePreview.innerHTML = ''; // Clear previous previews
+
+            Array.from(files).forEach(file => {
+                if (file && file.type.startsWith('image/')) {
+                    const thumbnail = createThumbnail(file);
+                    imagePreview.appendChild(thumbnail);
+                }
+            });
+        });
+
+        // Navigation buttons
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const backPageBtn = document.getElementById('backPageBtn');
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+
+        nextPageBtn.addEventListener('click', () => {
+            page1.classList.add('hidden');
+            page2.classList.remove('hidden');
+        });
+
+        backPageBtn.addEventListener('click', () => {
+            page2.classList.add('hidden');
+            page1.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
